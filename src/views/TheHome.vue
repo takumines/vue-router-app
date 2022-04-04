@@ -1,21 +1,19 @@
 <template>
   <div>
     <h3>Home</h3>
-    <button @click="toUsers">Usersのページへ</button>
+    <button @click="toUsers">Usersのページに行く</button>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'TheHome',
   methods: {
     toUsers() {
-      this.$router.push({ path: 'users/1'});
+      this.$router.push({
+        name: "users-id-profile",
+        params: { id: 1 }
+      });
     }
   }
-}
+};
 </script>
-
-<style scoped>
-
-</style>
