@@ -7,6 +7,22 @@ import axios from 'axios';
 Vue.config.productionTip = false
 
 axios.defaults.baseURL = process.env.VUE_APP_FIREBASE_URL;
+axios.interceptors.request.use(
+    config => {
+      return config
+    },
+    error => {
+      return Promise.reject(error)
+    }
+)
+axios.interceptors.response.use(
+   response => {
+        return response
+    },
+    error => {
+        return Promise.reject(error)
+    }
+)
 
 new Vue({
   router,
