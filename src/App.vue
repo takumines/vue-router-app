@@ -36,10 +36,9 @@ export default {
   },
   created() {
     axios.get(
-        'https://firestore.googleapis.com/v1/projects/vue-axios-test-cbbdf/databases/(default)/documents/comments',
+        '/comments',
     )
     .then(response => {
-      console.log(response);
        this.comments = response.data.documents;
     })
     .catch(error => {
@@ -52,7 +51,7 @@ export default {
     },
     createComment() {
       axios.post(
-          'https://firestore.googleapis.com/v1/projects/vue-axios-test-cbbdf/databases/(default)/documents/comments',
+          '/comments',
           {
             fields: {
               name: {
