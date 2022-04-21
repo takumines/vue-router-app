@@ -29,13 +29,22 @@ export default {
   created() {
     axios.get(
         '/comments',
-    )
+        {
+          headers: {
+            Authorization: `Bearer ${this.idToken}`
+          }
+        })
         .then(response => {
           this.comments = response.data.documents;
         })
         .catch(error => {
           console.log(error);
         });
+  },
+  computed: {
+    idToken() {
+      return this.$store.getters.idToken;
+    }
   },
   methods: {
     beforeEnter() {
@@ -52,6 +61,11 @@ export default {
               comment: {
                 stringValue: this.comment
               },
+            }
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${this.idToken}`
             }
           }
       )

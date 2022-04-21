@@ -12,7 +12,6 @@
 </template>
 
 <script>
-import axios from "../axios-auth";
 export default {
   data() {
     return {
@@ -22,16 +21,10 @@ export default {
   },
   methods: {
     register() {
-      axios.post(
-          '/accounts:signUp?key=' + process.env.VUE_APP_FIREBASE_API_KEY,
-          {
-            email: this.email,
-            password: this.password,
-            returnSecureToken: true,
-          }
-      ).then(response => {
-        console.log(response);
-      });
+      this.$store.dispatch('register', {
+        email: this.email,
+        password: this.password,
+      })
       this.email = '';
       this.password = '';
     },
