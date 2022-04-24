@@ -3,6 +3,7 @@ import Router from "vue-router";
 import Comments from "./views/TheComments";
 import Login from "./views/TheLogin";
 import Register from "./views/TheRegister";
+import store from "@/store";
 
 Vue.use(Router);
 
@@ -12,14 +13,35 @@ export default new Router({
         {
             path: '/',
             component: Comments,
+            beforeEnter(to, from,next) {
+                if (store.getters.idToken) {
+                    next();
+                } else {
+                    next('login');
+                }
+            }
         },
         {
             path: '/login',
             component: Login,
+            beforeEnter(to, from,next) {
+                if (store.getters.idToken) {
+                    next('/');
+                } else {
+                    next();
+                }
+            }
         },
         {
             path: '/register',
-            component: Register
+            component: Register,
+            beforeEnter(to, from,next) {
+                if (store.getters.idToken) {
+                    next('/');
+                } else {
+                    next();
+                }
+            }
         }
     ],
 });
