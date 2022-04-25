@@ -1,7 +1,9 @@
 import axios from "axios";
 
-const axiosAuth = axios.create({
+export const axiosAuth = axios.create({
     baseURL: process.env.VUE_APP_FIREBASE_AUTH_URL,
 });
 
-export default axiosAuth;
+export const axiosRefreshToken = axios.create({
+    baseURL: process.env.VUE_APP_REFRESH_TOKEN_URL,
+});
