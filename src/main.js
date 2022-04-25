@@ -23,6 +23,7 @@ axios.interceptors.response.use(
         return Promise.reject(error)
     }
 )
+store.dispatch('autoLogin');
 
 new Vue({
   router,

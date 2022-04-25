@@ -24,7 +24,26 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        login({ commit, dispatch }, authData) {
+        autoLogin({ commit, dispatch }) {
+            const idToken = localStorage.getItem('idToken');
+            const expiryTimeMs = localStorage.getItem('expiryTimeMs');
+            const refreshToken = localStorage.getItem('refreshToken');
+            const now = new Date();
+            const isExpired = now.getTime() >= expiryTimeMs;
+            if (!idToken) return;
+            // 認証トークンの有効期限が切れていたらリフレッシュする
+            // 切れていない場合は、有効期限が切れる時間にリフレッシュ処理を実行してidTokenを更新する
+            if (isExpired) {
+                dispatch('refreshIdToken', refreshToken);
+            } else {
+                const expiresInMs = expiryTimeMs - now.getTime();
+                setTimeout(() => {
+                    dispatch('refreshIdToken', refreshToken);
+                }, expiresInMs);
+                commit('updateIdToken', idToken);
+            }
+        },
+        login({ dispatch }, authData) {
             axiosAuth.post(
                 '/accounts:signInWithPassword?key=' + process.env.VUE_APP_FIREBASE_API_KEY,
                 {
@@ -33,14 +52,15 @@ export default new Vuex.Store({
                     returnSecureToken: true,
                 }
             ).then(response => {
-                commit('updateIdToken', response.data.idToken);
-                setTimeout(() => {
-                    dispatch('refreshIdToken', response.data.refreshToken);
-                }, response.data.expiresIn * 1000);
+                dispatch('setAuthData', {
+                    idToken: response.data.idToken,
+                    expiresIn: response.data.expiresIn,
+                    refreshToken: response.data.refreshToken
+                });
                 router.push('/');
             });
         },
-        register({ commit }, authData) {
+        register({ dispatch }, authData) {
             axiosAuth.post(
                 '/accounts:signUp?key=' + process.env.VUE_APP_FIREBASE_API_KEY,
                 {
@@ -49,11 +69,15 @@ export default new Vuex.Store({
                     returnSecureToken: true,
                 }
             ).then(response => {
-                commit('updateIdToken', response.data.idToken);
+                dispatch('setAuthData', {
+                    idToken: response.data.idToken,
+                    expiresIn: response.data.expiresIn,
+                    refreshToken: response.data.refreshToken
+                });
                 router.push('/');
             });
         },
-        refreshIdToken({ commit, dispatch }, refreshToken) {
+        refreshIdToken({ dispatch }, refreshToken) {
             axiosRefreshToken.post(
                 '/token?key=' + process.env.VUE_APP_FIREBASE_API_KEY,
                 {
@@ -61,11 +85,23 @@ export default new Vuex.Store({
                     refresh_token: refreshToken
                 }
             ).then(response => {
-                commit('updateIdToken', response.data.id_token);
-                setTimeout(() => {
-                    dispatch('refreshIdToken', response.data.refresh_token);
-                }, response.data.expires_in * 1000)
+                dispatch('setAuthData', {
+                    idToken: response.data.id_token,
+                    expiresIn: response.data.expires_in,
+                    refreshToken: response.data.refresh_token
+                });
             })
-        }
+        },
+        setAuthData({ commit, dispatch }, authData) {
+            // 有効期限が切れる時刻を設定
+            const expiryTimeMs = new Date().getTime() + authData.expiresIn * 1000;
+            commit('updateIdToken', authData.idToken);
+            localStorage.setItem('idToken', authData.idToken);
+            localStorage.setItem('expiryTimeMs', expiryTimeMs.toString());
+            localStorage.setItem('refreshToken', authData.refreshToken);
+            setTimeout(() => {
+                dispatch('refreshIdToken', authData.refreshToken);
+            }, authData.expiresIn * 1000);
+        },
     }
 });
