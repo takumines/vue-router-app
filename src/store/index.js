@@ -24,7 +24,7 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        autoLogin({ commit, dispatch }) {
+        async autoLogin({ commit, dispatch }) {
             const idToken = localStorage.getItem('idToken');
             const expiryTimeMs = localStorage.getItem('expiryTimeMs');
             const refreshToken = localStorage.getItem('refreshToken');
@@ -34,7 +34,7 @@ export default new Vuex.Store({
             // 認証トークンの有効期限が切れていたらリフレッシュする
             // 切れていない場合は、有効期限が切れる時間にリフレッシュ処理を実行してidTokenを更新する
             if (isExpired) {
-                dispatch('refreshIdToken', refreshToken);
+                await dispatch('refreshIdToken', refreshToken);
             } else {
                 const expiresInMs = expiryTimeMs - now.getTime();
                 setTimeout(() => {
@@ -77,8 +77,8 @@ export default new Vuex.Store({
                 router.push('/');
             });
         },
-        refreshIdToken({ dispatch }, refreshToken) {
-            axiosRefreshToken.post(
+        async refreshIdToken({ dispatch }, refreshToken) {
+            await axiosRefreshToken.post(
                 '/token?key=' + process.env.VUE_APP_FIREBASE_API_KEY,
                 {
                     grant_type: 'refresh_token',
@@ -103,5 +103,12 @@ export default new Vuex.Store({
                 dispatch('refreshIdToken', authData.refreshToken);
             }, authData.expiresIn * 1000);
         },
+        logout({ commit }) {
+            commit('updateIdToken', null);
+            localStorage.removeItem('idToken');
+            localStorage.removeItem('expiryTimeMs');
+            localStorage.removeItem('refreshToken');
+            router.replace('/login');
+        }
     }
 });
